@@ -2,7 +2,9 @@ package cn.allcheer.springcloud.eureka_admin_server.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -44,11 +46,8 @@ public class HttpsUtils {
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
             return HttpClients.custom().setSSLSocketFactory(sslsf).build();
         } catch (KeyManagementException e) {
-            e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
         } catch (KeyStoreException e) {
-            e.printStackTrace();
         }
         return HttpClients.createDefault();
 
@@ -61,22 +60,22 @@ public class HttpsUtils {
     public static String sendByHttp(List<NameValuePair> listNVP, String url) {
         try {
             HttpPost httpPost = new HttpPost(url);
-
             UrlEncodedFormEntity entity = new UrlEncodedFormEntity(listNVP, "UTF-8");
             log.info("创建请求httpPost-URL="+url+"，params="+listNVP);
             httpPost.setEntity(entity);
             httpClient = HttpClients.createDefault();
+            RequestConfig requestConfig=RequestConfig.custom().setConnectTimeout(1000*60*3).setConnectionRequestTimeout(1000*60*5).setSocketTimeout(1000*60*10).build();
+            httpPost.setConfig(requestConfig);
             httpResponse = httpClient.execute(httpPost);
             HttpEntity httpEntity = httpResponse.getEntity();
             if (httpEntity != null) {
-                String jsObject = EntityUtils.toString(httpEntity, "UTF-8");
-                log.info("jsObject\n{}",jsObject);
-                return jsObject;
+                String respString = EntityUtils.toString(httpEntity, "UTF-8");
+                log.info("jsObject\n{}",respString);
+                return respString;
             } else {
                 return null;
             }
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         } finally {
             try {
@@ -89,26 +88,4 @@ public class HttpsUtils {
         }
     }
 
-    public static List<NameValuePair> sortNameValuePair(List<NameValuePair> list){
-        list.sort((o1,o2)->{
-            int ascii1 = 0;
-            int ascii2 = 0;
-            int result=-1;
-            for(int i = 0;i<o1.getName().length() && i<o2.getName().length();i++){
-                ascii1=o1.getName().charAt(i);
-                ascii2=o2.getName().charAt(i);
-                if(ascii1 > ascii2){
-                    result = 1;
-                    break;
-                }else if(ascii1 == ascii2){
-                    continue;
-                }else if(ascii1<ascii2){
-                    result=-1;
-                    break;
-                }
-            }
-            return result;
-        });
-        return list;
-    }
 }
