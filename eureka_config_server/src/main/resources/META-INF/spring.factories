@@ -1,0 +1,2 @@
+org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+  cn.allcheer.springcloud.eureka_config_server.common.ConfigServicePropertySourceLocator
